@@ -1,5 +1,3 @@
-// Punto de entrada de la aplicación
-
 import { saveTasks, loadTasks } from "./storage.js";
 import { CONFIG,FILTERS, MESSAGES,SORT_OPTIONS } from "./constants.js";
 import { renderTasks, updateCounter, updateActiveFilter,renderStats } from "./ui.js";
@@ -13,10 +11,6 @@ import { debounce } from "./debounce.js";
 import { exportTasks } from "./export.js";
 import { readTasksFile } from "./import.js";
 import { createModalManager } from "./modalManager.js";
-
-// ===============================
-// REFERENCIAS DEL DOM
-// ===============================
 
 const filterButtons =             document.querySelectorAll(".filter-button");
 const taskInput =                 document.getElementById("taskInput");
@@ -47,10 +41,6 @@ const importModalDescription =    document.getElementById("importModalDescriptio
 const cancelImportButton =        document.getElementById("cancelImportButton");
 const confirmImportButton =       document.getElementById("confirmImportButton");
 
-
-// ===============================
-// ESTADO DE LA APLICACIÓN
-// ===============================
 
 let tasks = loadTasks();
 let currentFilter = FILTERS.ALL;
@@ -93,10 +83,6 @@ const handleSearchInput =
         refreshTaskView,
         300
     );
-
-// ===============================
-// INICIALIZACIÓN
-// ===============================
 
 init();
 
@@ -152,10 +138,6 @@ function init() {
 
     refreshUI();
 }
-// ===============================
-// ACTUALIZAR INTERFAZ
-// ===============================
-
 function refreshTaskView() {
     const filteredTasks = filterTasks(
         tasks,
@@ -191,11 +173,6 @@ function refreshUI() {
     refreshTaskView();
     refreshStats();
 }
-// ===============================
-// FUNCIONES
-// ===============================
-
-
 function handleAddTask() {
 
     const taskText = taskInput.value.trim();
