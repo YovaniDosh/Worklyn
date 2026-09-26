@@ -12,6 +12,7 @@ import { registerEvents } from "./events.js";
 import { debounce } from "./debounce.js";
 import { exportTasks } from "./export.js";
 import { readTasksFile } from "./import.js";
+import { createModalManager } from "./modalManager.js";
 
 // ===============================
 // REFERENCIAS DEL DOM
@@ -57,10 +58,35 @@ let currentSort = SORT_OPTIONS.DEFAULT;
 let currentTheme = loadTheme();
 let taskIdToDelete = null;
 let taskIdToEdit = null;
-let editTriggerElement = null;
-let deleteTriggerButton = null;
 let pendingImportedTasks = null;
-let importTriggerElement = null;
+
+const modalManager = createModalManager({
+    delete: {
+        element: deleteModal,
+        closeAttribute: "data-close-modal",
+        hiddenOnClose: false,
+        onClose: () => {
+            taskIdToDelete = null;
+        }
+    },
+    edit: {
+        element: editModal,
+        closeAttribute: "data-close-edit-modal",
+        hiddenOnClose: true,
+        onClose: () => {
+            taskIdToEdit = null;
+            editTaskForm.reset();
+        }
+    },
+    import: {
+        element: importModal,
+        closeAttribute: "data-close-import-modal",
+        hiddenOnClose: true,
+        onClose: () => {
+            pendingImportedTasks = null;
+        }
+    }
+});
 
 const handleSearchInput =
     debounce(
@@ -87,15 +113,12 @@ function init() {
             exportTasksButton,
             importTasksInput,
             importTasksButton,
-            importModal,
             cancelImportButton,
             confirmImportButton,
             cancelDeleteButton,
             confirmDeleteButton,
-            deleteModal,
             editTaskForm,
             cancelEditButton,
-            editModal
         },
         {
             handleAddTask,
@@ -110,12 +133,8 @@ function init() {
             handleImportFile,
             confirmImportTasks,
             closeImportModal,
-            handleImportModalClick,
-            closeDeleteModal,
+            closeDeleteModal: () => modalManager.close("delete"),
             confirmDeleteTask,
-            handleDeleteModalClick,
-            handleEditModalClick,
-            handleModalKeydown,
             handleEditSubmit,
             closeEditModal
         }
@@ -216,90 +235,6 @@ function handleAddTask() {
 
 }
 
-function getOpenModal()
-{
-    if(
-        deleteModal.classList.contains(
-            "open"
-        )
-    ) {
-        return deleteModal;
-    }
-
-    if(
-        editModal.classList.contains(
-            "open"
-        )
-    ) {
-        return editModal;
-    }
-    
-    if (
-    importModal.classList.contains("open"))
-    {
-        return importModal;
-    }
-
-        return null;
-    }
-
-function trapModalFocus(
-    event,
-    modal
-)
-{
-    const focusableElements = modal.querySelectorAll(
-        [
-            "button:not([disabled])",
-            "input:not([disabled])",
-            "select:not([disabled])",
-            "textarea:not([disabled])",
-            "a[href]",
-            "[tabindex]:not([tabindex='-1'])"
-        ].join(",")
-    );
-
-    if(!focusableElements.length)
-    {
-        return;
-    }
-
-    const firstElement =
-        focusableElements[0];
-
-    const lastElement =
-        focusableElements[
-            focusableElements.length - 1
-        ];
-
-    if (
-        event.shiftKey
-        &&
-        document.activeElement
-        ===
-        firstElement
-    ) {
-        event.preventDefault();
-
-        lastElement.focus();
-
-        return;
-    }
-
-    if (
-        !event.shiftKey
-        &&
-        document.activeElement
-        ===
-        lastElement
-    ) {
-        event.preventDefault();
-
-        firstElement.focus();
-    }
-
-}
-
 function handleEnterKey(event){
 
     if(event.key === "Enter"){
@@ -325,13 +260,6 @@ function handleTaskActions(event) {
 
     const id =
         button.dataset.id;
-
-    const index =
-        findTaskIndex(tasks, id);
-
-    if (index === -1) {
-        return;
-    }
 
     if (
         button.classList.contains(
@@ -408,61 +336,13 @@ function handleDeleteTask(
 
     taskIdToDelete = id;
 
-    deleteTriggerButton =
-        triggerButton;
-
     deleteModalMessage.textContent =
         `¿Deseas eliminar la tarea "${tasks[index].text}"?`;
 
-    openDeleteModal();
-}
-
-function openDeleteModal() {
-
-    deleteModal.classList.add(
-        "open"
-    );
-
-    deleteModal.setAttribute(
-        "aria-hidden",
-        "false"
-    );
-
-    document.body.classList.add(
-        "modal-open"
-    );
-
-    confirmDeleteButton.focus();
-
-}
-
-function closeDeleteModal(
-    restoreFocus = true
-) {
-
-    deleteModal.classList.remove(
-        "open"
-    );
-
-    deleteModal.setAttribute(
-        "aria-hidden",
-        "true"
-    );
-
-    document.body.classList.remove(
-        "modal-open"
-    );
-
-    if (
-        restoreFocus
-        &&
-        deleteTriggerButton?.isConnected
-    ) {
-        deleteTriggerButton.focus();
-    }
-
-    taskIdToDelete = null;
-    deleteTriggerButton = null;
+    modalManager.open("delete", {
+        trigger: triggerButton,
+        focus: confirmDeleteButton
+    });
 }
 
 function confirmDeleteTask() {
@@ -484,7 +364,7 @@ function confirmDeleteTask() {
 
     if (index === -1) {
 
-        closeDeleteModal(false);
+        modalManager.close("delete", { restoreFocus: false });
 
         return;
 
@@ -501,7 +381,7 @@ function confirmDeleteTask() {
         idToDelete
     );
 
-    closeDeleteModal(false);
+    modalManager.close("delete", { restoreFocus: false });
 
     persistAndRefresh();
 
@@ -517,91 +397,10 @@ function confirmDeleteTask() {
 
 }
 
-function handleDeleteModalClick(event)
-{
-    if(
-        event.target.hasAttribute(
-            "data-close-modal"
-        )
-    ){
-        closeDeleteModal();
-    }
-}
-
-function handleEditModalClick(event)
-{
-    if(
-        event.target.hasAttribute(
-            "data-close-edit-modal"
-        )
-    ) {
-        closeEditModal();
-    }
-}
-
-function handleModalKeydown(event) {
-    const openModal =
-        getOpenModal();
-
-    if (!openModal) {
-        return;
-    }
-
-    if (event.key === "Escape") {
-        event.preventDefault();
-
-    if (openModal === deleteModal) {
-        closeDeleteModal();
-    } else if (openModal === editModal) {
-        closeEditModal();
-    } else {
-        closeImportModal();
-    }
-
-        return;
-    }
-
-    if (event.key === "Tab") {
-        trapModalFocus(
-            event,
-            openModal
-        );
-    }
-}
-
 function closeEditModal(
     restoreFocus = true
 ) {
-
-    editModal.classList.remove(
-        "open"
-    );
-
-    editModal.hidden = true;
-
-    editModal.setAttribute(
-        "aria-hidden",
-        "true"
-    );
-
-    document.body.classList.remove(
-        "modal-open"
-    );
-
-    editTaskForm.reset();
-
-    taskIdToEdit = null;
-
-    if (
-        restoreFocus
-        &&
-        editTriggerElement?.isConnected
-    ) {
-        editTriggerElement.focus();
-    }
-
-    editTriggerElement = null;
-
+    modalManager.close("edit", { restoreFocus });
 }
 
 function openEditModal(
@@ -617,32 +416,14 @@ function openEditModal(
     }
 
     taskIdToEdit = id;
-    editTriggerElement = triggerElement;
-
     editTaskInput.value =
         tasks[index].text;
 
-    editModal.hidden = false;
-
-    editModal.setAttribute(
-        "aria-hidden",
-        "false"
-    );
-
-    editModal.classList.add(
-        "open"
-    );
-
-    document.body.classList.add(
-        "modal-open"
-    );
-
-    requestAnimationFrame(() => {
-
-        editTaskInput.focus();
-        editTaskInput.select();
-
+    modalManager.open("edit", {
+        trigger: triggerElement,
+        focus: editTaskInput
     });
+    requestAnimationFrame(() => editTaskInput.select());
 
 }
 
@@ -832,15 +613,15 @@ async function handleImportFile(event) {
         pendingImportedTasks =
             await readTasksFile(file);
 
-        importTriggerElement =
-            importTasksButton;
-
         importModalDescription.textContent =
             pendingImportedTasks.length === 1
                 ? "Se encontró 1 tarea. La importación reemplazará las tareas actuales."
                 : `Se encontraron ${pendingImportedTasks.length} tareas. La importación reemplazará las tareas actuales.`;
 
-        openImportModal();
+        modalManager.open("import", {
+            trigger: importTasksButton,
+            focus: confirmImportButton
+        });
     } catch (error) {
         pendingImportedTasks = null;
 
@@ -854,52 +635,8 @@ async function handleImportFile(event) {
     }
 }
 
-function openImportModal() {
-    importModal.hidden = false;
-
-    importModal.setAttribute(
-        "aria-hidden",
-        "false"
-    );
-
-    importModal.classList.add(
-        "open"
-    );
-
-    document.body.classList.add(
-        "modal-open"
-    );
-
-    confirmImportButton.focus();
-}
-
-function closeImportModal(
-    restoreFocus = true
-) {
-    importModal.classList.remove(
-        "open"
-    );
-
-    importModal.hidden = true;
-
-    importModal.setAttribute(
-        "aria-hidden",
-        "true"
-    );
-
-    document.body.classList.remove(
-        "modal-open"
-    );
-
-    if (
-        restoreFocus
-        && importTriggerElement?.isConnected
-    ) {
-        importTriggerElement.focus();
-    }
-
-    pendingImportedTasks = null;
-    importTriggerElement = null;
+function closeImportModal(restoreFocus = true) {
+    modalManager.close("import", { restoreFocus });
 }
 
 function confirmImportTasks() {
@@ -941,14 +678,4 @@ function confirmImportTasks() {
     );
 
     taskInput.focus();
-}
-
-function handleImportModalClick(event) {
-    if (
-        event.target.hasAttribute(
-            "data-close-import-modal"
-        )
-    ) {
-        closeImportModal();
-    }
 }
