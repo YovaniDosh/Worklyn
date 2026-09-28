@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Organiza tus tareas, prioridades y fechas límite con Worklyn, un gestor de tareas sencillo y profesional.">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Worklyn | Gestor de tareas">
+    <meta property="og:description" content="Organiza tus tareas, prioridades y fechas límite con Worklyn, un gestor de tareas sencillo y profesional.">
+    <link rel="icon" href="./assets/icon/notas.png?v=2" type="image/png" sizes="512x512">
+    <link rel="stylesheet" href="css/style.css">
+
+    <title>Worklyn | Gestor de tareas</title>
+
+</head>
+
+<body>
+
+    <main class="container">
+
+        <header>
+
+            <h1><span>Worklyn</span> <br> Gestor de Tareas Profesional</h1>
+
+            <p>Organiza tu día de manera más sencilla.</p>
+
+            <button id="themeToggle" class="theme-toggle" type="button" aria-label="Activar tema oscuro" aria-pressed="false">
+                🌙
+            </button>
+
+        </header>
+
+        <section class="task-form" aria-labelledby="taskFormTitle">
+
+            <h2 id="taskFormTitle" class="sr-only"> Crear nueva tarea </h2>
+
+            <label for="taskInput" class="sr-only"> Nombre de la tarea </label>
+            <input id="taskInput" type="text" placeholder="Nueva tarea..." maxlength="120" autocomplete="off">
+
+            <label for="prioritySelect" class="sr-only"> Prioridad </label>
+            <select id="prioritySelect">
+
+                <option value="" selected disabled hidden>Prioridad</option>
+                <option value="high">🔴 Alta</option>
+                <option value="medium">🟡 Media</option>
+                <option value="low">🟢 Baja</option>
+
+            </select>
+
+            <label for="dateInput" class="sr-only"> Fecha límite </label>
+            <input id="dateInput" type="date">
+
+            <button id="addTaskButton" type="button"> Agregar </button>
+
+        </section>
+
+        <section class="search-container" aria-labelledby="searchTitle">
+
+            <h2 id="searchTitle" class="sr-only">
+                Buscar tareas
+            </h2>
+
+            <label for="searchInput" class="sr-only">
+                Buscar por nombre
+            </label>
+
+            <input id="searchInput" type="search" placeholder="Buscar tareas..." autocomplete="off">
+
+        </section>
+
+        <section class="filters" aria-labelledby="filtersTitle">
+
+            <h2 id="filtersTitle" class="sr-only">
+                Filtrar tareas
+            </h2>
+
+            <button class="filter-button active" type="button" data-filter="all" aria-pressed="true">
+                Todas
+            </button>
+
+            <button class="filter-button" type="button" data-filter="pending" aria-pressed="false">
+                Pendientes
+            </button>
+
+            <button class="filter-button" type="button" data-filter="completed" aria-pressed="false"> 
+                Completadas
+            </button>
+
+        </section>
+
+        <section class="sort-container" aria-labelledby="sortTitle">
+
+        <h2 id="sortTitle" class="sr-only"> Ordenar tareas </h2>
+
+        <label for="sortSelect"> Ordenar por: </label>
+
+        <select id="sortSelect">
+
+            <option value="default"> Orden original </option>
+            <option value="name"> Nombre </option>
+            <option value="priority"> Prioridad </option>
+            <option value="date"> Fecha límite </option>
+
+        </select>
+
+        </section>
+
+        <section class="data-actions" aria-labelledby="dataActionsTitle">
+
+            <h2 id="dataActionsTitle" class="sr-only"> Gestión de datos </h2>
+
+            <button id="exportTasksButton" class="secondary-button" type="button">
+                Exportar tareas
+            </button>
+
+            <input type="file" id="importTasksInput" accept=".json,application/json" class="sr-only">
+
+            <button class="secondary-button" type="button" id="importTasksButton">
+                Importar tareas
+            </button>
+
+        </section>
+
+        <section aria-labelledby="taskListTitle">
+            <h2 id="taskListTitle" class="sr-only">
+                Lista de tareas
+            </h2>
+
+            <ul id="taskList" aria-live="polite" aria-relevant="additions removals"></ul>
+        </section>
+
+        <footer>
+
+            <p id="taskCounter"> 0 tareas </p>
+            <section class="stats" aria-labelledby="statsTitle">
+
+                <h2 id="statsTitle">
+                    📊 Estadísticas
+                </h2>
+
+                <div id="statsContainer"></div>
+            </section>
+
+        </footer>
+
+    </main>
+
+    <div id="deleteModal" class="modal" aria-hidden="true">
+
+        <div class="modal-overlay" data-close-modal aria-hidden="true"></div>
+
+        <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="deleteModalTitle">
+            <h2 id="deleteModalTitle">
+                Eliminar tarea
+            </h2>
+
+            <p id="deleteModalMessage">
+                ¿Deseas eliminar esta tarea?
+            </p>
+
+            <div class="modal-actions">
+
+                <button id="cancelDeleteButton" type="button" class="secondary-button">
+                    Cancelar
+                </button>
+
+                <button id="confirmDeleteButton" type="button" class="danger-button">
+                    Eliminar
+                </button>
+
+            </div>
+        </div>
+    </div>
+
+    <div id="editModal" class="modal" aria-hidden="true" hidden>
+
+        <div class="modal-overlay" data-close-edit-modal aria-hidden="true">
+       </div>
+
+        <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="editModalTitle" aria-describedby="editModalDescription">
+
+            <h2 id="editModalTitle" class="modal__title">
+                Editar tarea
+            </h2>
+
+            <p id="editModalDescription" class="modal__description">
+                Modifica el contenido de la tarea seleccionada.
+            </p>
+
+            <form id="editTaskForm">
+
+                <label for="editTaskInput" class="modal__label">
+                    Nombre de la tarea
+                </label>
+
+                <input id="editTaskInput" class="modal__input" type="text" maxlength="120" autocomplete="off" required>
+
+                <div class="modal-actions">
+
+                    <button id="cancelEditButton" class="secondary-button" type="button">
+                        Cancelar
+                    </button>
+
+                    <button id="saveEditButton" class="primary-button" type="submit">
+                        Guardar cambios
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+
+    <div id="importModal" class="modal" aria-hidden="true" hidden>
+    
+        <div class="modal-overlay" data-close-import-modal aria-hidden="true">
+        </div>
+
+        <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="importModalTitle" aria-describedby="importModalDescription">
+
+        <h2 id="importModalTitle">
+            Importar tareas
+        </h2>
+
+        <p id="importModalDescription">
+            La importación reemplazará las tareas actuales.
+        </p>
+
+            <div class="modal-actions">
+
+                <button id="cancelImportButton" class="secondary-button" type="button">
+                    Cancelar
+                </button>
+
+                <button id="confirmImportButton" class="danger-button" type="button">
+                    Reemplazar tareas
+                </button>
+
+            </div>
+        </div>
+    </div>
+
+    </div>
+
+    <div id="toastContainer" aria-live="polite" aria-atomic="false" class="toast-container">
+    </div>
+
+    <script
+        type="module"
+        src="js/app.js">
+    </script>
+
+</body>
+
+</html>
