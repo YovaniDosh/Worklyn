@@ -50,6 +50,11 @@ export function exportTasks(
     );
 
     downloadLink.click();
+    
+    setTimeout(() => {
+    URL.revokeObjectURL(fileUrl);
+    }, 0);
+
     downloadLink.remove();
 
     return true;

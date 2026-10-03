@@ -1,24 +1,34 @@
 import mongoose from "mongoose";
 
+import {
+    TASK_PRIORITIES,
+    TASK_STATUSES,
+    TASK_DEFAULTS
+} from "../constants/task.constants.js";
+
 const taskSchema = new mongoose.Schema({
     title: {
         type: String,
         required: true,
-        trim: true
+        trim: true,
+        minlength: 1,
+        maxlength: 120
     },
     description: {
         type: String,
+        trim: true,
         default: "",
+        maxlength: 1000
     },
     priority: {
         type: String,
-        enum: ["low", "medium", "high"],
-        default: "medium"
+        enum: Object.values(TASK_PRIORITIES),
+        default: TASK_DEFAULTS.PRIORITY
     },
     status: {
         type: String,
-        enum: ["pending", "in-progress", "completed"],
-        default: "pending"
+        enum: Object.values(TASK_STATUSES),
+        default: TASK_DEFAULTS.STATUS
     },
     dueDate: {
         type: Date,
@@ -26,7 +36,9 @@ const taskSchema = new mongoose.Schema({
     },
     category: {
         type: String,
-        default: "Personal"
+        trim: true,
+        default: TASK_DEFAULTS.CATEGORY,
+        maxlength: 50
     }
 },
 {

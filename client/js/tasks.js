@@ -1,18 +1,19 @@
 import { CONFIG } from "./constants.js";
+import { normalizeTask } from "./taskValidation.js";
 
 export function createTask(
     text,
     priority = CONFIG.DEFAULT_PRIORITY,
     dueDate = ""
 ) {
-    return {
+    return normalizeTask({
         id: crypto.randomUUID(),
-        text: text.trim(),
+        text,
         completed: false,
         priority,
         createdAt: new Date().toISOString(),
         dueDate
-    };
+    });
 }
 
 export function addTask(tasks, task) {

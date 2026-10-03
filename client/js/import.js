@@ -1,35 +1,14 @@
-import { isValidDateString } from "./dateUtils.js";
-import { PRIORITIES } from "./constants.js";
-
-const VALID_PRIORITIES = Object.values(PRIORITIES);
-
-function isValidCreatedAt(value) {
-    return (
-        typeof value === "string"
-        && value.trim() !== ""
-        && !Number.isNaN(
-            Date.parse(value)
-        )
-    );
-}
-
-function isValidDueDate(value) {
-    if (
-        value === ""
-        || value === null
-    ) {
-        return true;
-    }
-
-    return typeof value === "string" && isValidDateString(value);
-}
+import {
+    isValidTaskText,
+    isValidPriority,
+    isValidCompleted,
+    isValidCreatedAt,
+    isValidDueDate
+} from "./taskValidation.js";
 
 function isValidTask(task){
-    if(
-        !task
-        || typeof task !== "object"
-        || Array.isArray(task)
-    )
+
+    if( !task || typeof task !== "object" || Array.isArray(task) )
     {
         return false;
     }
@@ -37,14 +16,12 @@ function isValidTask(task){
     return (
         typeof task.id === "string"
         && task.id.trim() !== ""
-        && typeof task.text === "string"
-        && task.text.trim() !== ""
-        && task.text.length <= 120
-        && typeof task.completed === "boolean"
-        && VALID_PRIORITIES.includes(task.priority)
+        && isValidTaskText(task.text)
+        && isValidCompleted(task.completed)
+        && isValidPriority(task.priority)
         && isValidCreatedAt(task.createdAt)
         && isValidDueDate(task.dueDate)
-    )
+    );
 }
 
 function hasUniqueIds(tasks){
@@ -56,24 +33,18 @@ function hasUniqueIds(tasks){
 
 export function validateImportData(data)
 {
-    if(
-        !data
-        || typeof data !== "object"
-        || Array.isArray(data)
-    )
+    if( !data || typeof data !== "object" || Array.isArray(data))
     {
         return {
             valid: false,
-            error: 
-                "El archivo no contiene un respaldo válido"
+            error:  "El archivo no contiene un respaldo válido"
         };
     }
 
     if (!Array.isArray(data.tasks)) {
         return {
             valid: false,
-            error:
-            "El archivo no contiene una lista de tareas."
+            error: "El archivo no contiene una lista de tareas."
         };
     }
 
@@ -122,7 +93,7 @@ export async function readTasksFile(file)
         && file.type !== "application/json"
     ){
         throw new Error(
-            "Selecciona un archivo en formato Json"
+            "Selecciona un archivo en formato JSON"
         );
     }
 

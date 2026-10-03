@@ -1,38 +1,5 @@
-import { CONFIG, PRIORITIES } from "./constants.js";
-
-function normalizeTask(task) {
-    return {
-        id:
-            typeof task.id === "string"
-                ? task.id
-                : crypto.randomUUID(),
-
-        text:
-            typeof task.text === "string"
-                ? task.text.trim()
-                : "",
-
-        completed:
-            typeof task.completed === "boolean"
-                ? task.completed
-                : false,
-
-        priority:
-            Object.values(PRIORITIES).includes(task.priority)
-                ? task.priority
-                : CONFIG.DEFAULT_PRIORITY,
-
-        createdAt:
-            typeof task.createdAt === "string"
-                ? task.createdAt
-                : new Date().toISOString(),
-
-        dueDate:
-            typeof task.dueDate === "string"
-                ? task.dueDate
-                : ""
-    };
-}
+import { CONFIG } from "./constants.js";
+import { normalizeTask } from "./taskValidation.js";
 
 export function saveTasks(tasks) {
     if (!Array.isArray(tasks)) {

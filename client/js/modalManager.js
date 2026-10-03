@@ -53,20 +53,49 @@ export function createModalManager(configurations) {
     }
 
     function trapFocus(event, element) {
-        const focusable = element.querySelectorAll(FOCUSABLE_SELECTOR);
-        if (!focusable.length) return;
+
+        const focusable = element.querySelectorAll(
+            FOCUSABLE_SELECTOR
+    );
+
+        if (!focusable.length) {
+            return;
+        }
 
         const first = focusable[0];
         const last = focusable[focusable.length - 1];
 
-        if (event.shiftKey && document.activeElement === first) {
+        if (!element.contains(document.activeElement)) {
+
             event.preventDefault();
+
+            first.focus();
+
+            return;
+        }
+
+        if (
+            event.shiftKey
+            && document.activeElement === first
+        ) {
+
+            event.preventDefault();
+
             last.focus();
-        } else if (!event.shiftKey && document.activeElement === last) {
+
+            return;
+        }
+
+        if (
+            !event.shiftKey
+            && document.activeElement === last
+        ) {
+
             event.preventDefault();
+
             first.focus();
         }
-    }
+}
 
     for (const [name, modal] of modals) {
         modal.element.addEventListener("click", event => {

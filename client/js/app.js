@@ -138,6 +138,7 @@ function init() {
 
     refreshUI();
 }
+
 function refreshTaskView() {
     const filteredTasks = filterTasks(
         tasks,
@@ -173,6 +174,7 @@ function refreshUI() {
     refreshTaskView();
     refreshStats();
 }
+
 function handleAddTask() {
 
     const taskText = taskInput.value.trim();

@@ -1,3 +1,4 @@
+import { PRIORITIES } from "./constants.js";
 import { isOverdue } from "./dateUtils.js";
 
 const INITIAL_STATS = {
@@ -27,7 +28,7 @@ export function calculateStats(tasks) {
                 stats.overdue++;
             }
 
-            if (task.priority === "high") {
+            if (task.priority === PRIORITIES.high) {
                 stats.highPriority++;
             }
 

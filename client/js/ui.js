@@ -28,7 +28,7 @@ export function getPriorityText(priority) {
     return (
         PRIORITY_LABELS[priority]
         ??
-        PRIORITY_LABELS.medium
+        PRIORITY_LABELS[PRIORITIES.medium]
     );
 }
 
@@ -74,12 +74,8 @@ export function createTaskHTML(task) {
 
     return `
         <li class="task-item ${overdueClass}">
-            <div class="task-content">
-                <span
-                    class="task-text ${completedClass}"
-                    data-id="${safeId}"
-                    tabindex="0"
-                >
+            <div class="task-content">           
+                <span class="task-text ${completedClass}" data-id="${safeId}">
                     ${safeText}
                 </span>
 
@@ -93,30 +89,15 @@ export function createTaskHTML(task) {
             </div>
 
             <div class="task-actions">
-                <button
-                    class="complete-button"
-                    type="button"
-                    data-id="${safeId}"
-                    aria-label="${completeLabel}"
-                >
+                <button class="complete-button" type="button" data-id="${safeId}" aria-label="${completeLabel}">
                     ${completeIcon}
                 </button>
 
-                <button
-                    class="edit-button"
-                    type="button"
-                    data-id="${safeId}"
-                    aria-label="Editar tarea: ${safeText}"
-                >
+                <button class="edit-button" type="button" data-id="${safeId}" aria-label="Editar tarea: ${safeText}">
                     ${ICONS.EDIT}
                 </button>
 
-                <button
-                    class="delete-button"
-                    type="button"
-                    data-id="${safeId}"
-                    aria-label="Eliminar tarea: ${safeText}"
-                >
+                <button class="delete-button" type="button" data-id="${safeId}" aria-label="Eliminar tarea: ${safeText}">
                     ${ICONS.DELETE}
                 </button>
             </div>
@@ -173,10 +154,7 @@ export function updateActiveFilter(
     currentFilter
 ) {
     filterButtons.forEach(button => {
-        const isActive =
-            button.dataset.filter
-            ===
-            currentFilter;
+        const isActive = button.dataset.filter === currentFilter;
 
         button.classList.toggle(
             "active",
@@ -190,47 +168,35 @@ export function updateActiveFilter(
     });
 }
 
-export function renderStats(
-    container,
-    stats
-) {
+export function renderStats(container, stats){
     if (!container) {
         return;
     }
 
     const cards = [
-        {
-            label: "Total",
-            value: stats.total
-        },
-        {
-            label: "Pendientes",
-            value: stats.pending
-        },
-        {
-            label: "Completadas",
-            value: stats.completed
-        },
-        {
-            label: "Vencidas",
-            value: stats.overdue
-        },
-        {
-            label: "Alta prioridad",
-            value: stats.highPriority
-        }
+        { label: "Total", value: stats.total },
+        { label: "Pendientes", value: stats.pending },
+        { label: "Completadas", value: stats.completed },
+        { label: "Vencidas", value: stats.overdue },
+        { label: "Alta prioridad", value: stats.highPriority }
     ];
 
-    container.innerHTML = `
-        <div class="stats-grid">
-            ${cards
-                .map(card => `
-                    <article class="stat-card">
-                        <span>${card.label}</span>
-                        <strong>${card.value}</strong>
-                    </article>
-                `)
-                .join("")}
-        </div>
-    `;
-}
+    const statsGrid = document.createElement("div");
+    statsGrid.className = "stats-grid";
+
+    cards.forEach(card => {
+        const article = document.createElement("article");
+        article.className = "stats-card";
+
+        const label = document.createElement("span");
+        label.textContent = card.label;
+
+        const value = document.createElement("strong");
+        value.textContent = String(card.value);
+
+        article.append(label, value);
+        statsGrid.appendChild(article);
+    });
+
+    container.replaceChildren(statsGrid);
+};
